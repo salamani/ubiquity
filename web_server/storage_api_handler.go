@@ -103,13 +103,13 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 			return
 		}
 
-		h.locker.ReadLock(createVolumeRequest.Name) // will block if another caller is already in process of creating volume with same name
-		if exists := h.getVolumeExists(createVolumeRequest.Name); exists == true {
-			utils.WriteResponse(w, 409, &resources.GenericResponse{Err: fmt.Sprintf("Volume `%s` already exists", createVolumeRequest.Name)})
-			h.locker.ReadUnlock(createVolumeRequest.Name)
-			return
-		}
-		h.locker.ReadUnlock(createVolumeRequest.Name)
+		//h.locker.ReadLock(createVolumeRequest.Name) // will block if another caller is already in process of creating volume with same name
+		//if exists := h.getVolumeExists(createVolumeRequest.Name); exists == true {
+		//	utils.WriteResponse(w, 409, &resources.GenericResponse{Err: fmt.Sprintf("Volume `%s` already exists", createVolumeRequest.Name)})
+		//	h.locker.ReadUnlock(createVolumeRequest.Name)
+		//	return
+		//}
+		//h.locker.ReadUnlock(createVolumeRequest.Name)
 
 		h.locker.WriteLock(createVolumeRequest.Name) // will ensure no other caller can create volume with same name concurrently
 		defer h.locker.WriteUnlock(createVolumeRequest.Name)

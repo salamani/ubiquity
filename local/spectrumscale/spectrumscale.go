@@ -157,7 +157,7 @@ func (s *spectrumLocalClient) CreateVolume(createVolumeRequest resources.CreateV
 	}
 
 	if volExists {
-		return fmt.Errorf("Volume already exists")
+		return nil
 	}
 
 	s.logger.Printf("Opts for create: %#v\n", createVolumeRequest.Opts)
