@@ -275,7 +275,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	if err != nil {
 		//TODO: Test for DS8k
 		if database.IsDatabaseVolume(volNameToCreate) {
-			volNameToCreate = fmt.Sprintf(ComposeVolumeName_DS8k, volNameToCreate)
+			volNameToCreate = fmt.Sprintf(ComposeVolumeName_DS8k, database.VolumeNameSuffix)
 		} else {
 			r := rand.New(rand.NewSource(time.Now().UnixNano()))
 			volNameToCreate = strconv.Itoa(r.Intn(999999999999999))
