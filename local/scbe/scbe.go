@@ -279,6 +279,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 		} else {
 			r := rand.New(rand.NewSource(time.Now().UnixNano()))
 			volNameToCreate = strconv.Itoa(r.Intn(999999999999999))
+			createVolumeRequest.Opts["PVNameForDS8k"] = volNameToCreate
 			volNameToCreate = fmt.Sprintf(ComposeVolumeName_DS8k, volNameToCreate)
 		}
 		volInfo, err = scbeRestClient.CreateVolume(volNameToCreate, profile, size)
@@ -287,6 +288,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 		}
 
 		createVolumeRequest.Name = volNameToCreate
+
 		err = s.dataModel.InsertVolume(createVolumeRequest.Name, volInfo.Wwn, fstype)
 		if err != nil {
 			return s.logger.ErrorRet(err, "dataModel.InsertVolume failed")
