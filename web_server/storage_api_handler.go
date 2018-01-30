@@ -112,12 +112,14 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 
 		h.locker.WriteLock(createVolumeRequest.Name) // will ensure no other caller can create volume with same name concurrently
 		defer h.locker.WriteUnlock(createVolumeRequest.Name)
-		err = backend.CreateVolume(createVolumeRequest)
+		volumeName, err := backend.CreateVolume(createVolumeRequest)
 		if err != nil {
 			utils.WriteResponse(w, 409, &resources.GenericResponse{Err: err.Error()})
 			return
 		}
-		utils.WriteResponse(w, http.StatusOK, nil)
+
+		volumeResponse := resources.VolumeResponse{volumeName}
+		utils.WriteResponse(w, http.StatusOK, volumeResponse)
 	}
 }
 
