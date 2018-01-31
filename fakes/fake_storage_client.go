@@ -172,7 +172,7 @@ func (fake *FakeStorageClient) ActivateReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStorageClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) error {
+func (fake *FakeStorageClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) (string, error) {
 	fake.createVolumeMutex.Lock()
 	ret, specificReturn := fake.createVolumeReturnsOnCall[len(fake.createVolumeArgsForCall)]
 	fake.createVolumeArgsForCall = append(fake.createVolumeArgsForCall, struct {
@@ -181,12 +181,12 @@ func (fake *FakeStorageClient) CreateVolume(createVolumeRequest resources.Create
 	fake.recordInvocation("CreateVolume", []interface{}{createVolumeRequest})
 	fake.createVolumeMutex.Unlock()
 	if fake.CreateVolumeStub != nil {
-		return fake.CreateVolumeStub(createVolumeRequest)
+		return "", fake.CreateVolumeStub(createVolumeRequest)
 	}
 	if specificReturn {
-		return ret.result1
+		return "", ret.result1
 	}
-	return fake.createVolumeReturns.result1
+	return createVolumeRequest.Name,fake.createVolumeReturns.result1
 }
 
 func (fake *FakeStorageClient) CreateVolumeCallCount() int {

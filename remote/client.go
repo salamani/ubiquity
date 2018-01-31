@@ -68,19 +68,19 @@ func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRe
 	createVolumeRequest.CredentialInfo = s.config.CredentialInfo
 	response, err := utils.HttpExecute(s.httpClient, "POST", createRemoteURL, createVolumeRequest)
 	if err != nil {
-		return nil, s.logger.ErrorRet(err, "utils.HttpExecute failed")
+		return "", s.logger.ErrorRet(err, "utils.HttpExecute failed")
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return nil, s.logger.ErrorRet(utils.ExtractErrorResponse(response), "failed", logs.Args{{"response", response}})
+		return "", s.logger.ErrorRet(utils.ExtractErrorResponse(response), "failed", logs.Args{{"response", response}})
 	}
 
 	volumeResponse := resources.VolumeResponse{}
 	err = utils.UnmarshalResponse(response, &volumeResponse)
 	if err != nil {
-		return nil, s.logger.ErrorRet(err, "utils.UnmarshalResponse failed", logs.Args{{"response", response}})
+		return "", s.logger.ErrorRet(err, "utils.UnmarshalResponse failed", logs.Args{{"response", response}})
 	}
 
 	return volumeResponse.Name, nil
