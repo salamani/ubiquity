@@ -50,8 +50,8 @@ const (
 	ComposeVolumeName        = volumeNamePrefix + "%s_%s" // e.g u_instance1_volName
 	ComposeVolumeName_DS8k   = volumeNamePrefix_DS8k + "%s"
 	MaxVolumeNameLength      = 63                         // IBM block storage max volume name cannot exceed this length
-	VolumeNameInvalidMessage = "the length of the volume name for DS8k, should less than 16 chars"
-	VolumeNameDupMessage     =  "the volume name is duplicatation from Storage"
+	VolumeNameInvalidMessage = "Volume names are limited to 16 characters"
+	VolumeNameDupMessage     =  "The volume name already exists"
 
 	GetVolumeConfigExtraParams = 2 // number of extra params added to the VolumeConfig beyond the scbe volume struct
 )
