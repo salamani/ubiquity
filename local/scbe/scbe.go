@@ -53,7 +53,6 @@ const (
 	VolumeNameInvalidMessage = "the length of the volume name for DS8k, should less than 16 chars"
 	VolumeNameDupMessage     =  "the volume name is duplicatation from Storage"
 
-
 	GetVolumeConfigExtraParams = 2 // number of extra params added to the VolumeConfig beyond the scbe volume struct
 )
 
@@ -292,11 +291,8 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	volInfo := ScbeVolumeInfo{}
 	//volInfo, err = scbeRestClient.CreateVolume(volNameToCreate, profile, size)
 
-
-	//createVolumeRequest.Name = "fly_helloxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	//s.logger.Info("new name is ", logs.Args{{"volumename", createVolumeRequest.Name}})
-
 	volNameMaxLen := MaxVolumeNameLength
+	//compose the volume name if the key "volumeNameMaxLen" exist
 	if volNameLen, exists := createVolumeRequest.Opts["volumeNameMaxLen"]; exists {
 		volNameMaxLen = volNameLen.(int)
 		volNameToCreate = composeVolueName(volNameMaxLen)
@@ -316,18 +312,19 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 				volNameToCreate = fmt.Sprintf(ComposeVolumeName_DS8k, database.VolumeNameSuffix)
 				createVolumeRequest.Name = database.VolumeNameSuffix
 			} else {
-				return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
+				return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed with too long volume name")
 			}
 		} else if strings.Contains(err.Error(), VolumeNameDupMessage){
 			// if composed volume name is dup in SCB side, will re-compose
 			volNameToCreate = composeVolueName(volNameMaxLen)
 			createVolumeRequest.Name = volNameToCreate
+			s.logger.Debug("recomposed", logs.Args{{"volume name", volNameToCreate}})
 		} else {
 			return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
 		}
 
 		if i == 4 {
-			return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
+			return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed after retry")
 		}
 	}
 

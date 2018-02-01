@@ -696,6 +696,127 @@ var _ = Describe("scbeLocalClient", func() {
 	})
 })
 
+var _ = Describe("scbeLocalClient", func() {
+	var (
+		client             resources.StorageClient
+		fakeScbeDataModel  *fakes.FakeScbeDataModelWrapper
+		fakeScbeRestClient *fakes.FakeScbeRestClient
+		fakeConfig         resources.ScbeConfig
+		fakeDupErr         error = errors.New("create failed because the volume name is duplicatation from Storage")
+		fakeVolLenErr	   error = errors.New("the length of the volume name for DS8k, should less than 16 chars")
+		err                error
+	)
+	BeforeEach(func() {
+		fakeScbeDataModel = new(fakes.FakeScbeDataModelWrapper)
+		fakeScbeRestClient = new(fakes.FakeScbeRestClient)
+		fakeConfig = resources.ScbeConfig{
+			ConfigPath:           "/tmp",
+			DefaultService:       fakeDefaultProfile,
+			UbiquityInstanceName: "fakeInstance1",
+		}
+		fakeScbeRestClient.LoginReturns(nil)
+		fakeScbeRestClient.ServiceExistReturns(true, nil)
+		client, err = scbe.NewScbeLocalClientWithNewScbeRestClientAndDataModel(
+			fakeConfig,
+			fakeScbeDataModel,
+			fakeScbeRestClient)
+		Expect(err).ToNot(HaveOccurred())
+	})
+	Context(".CreateVolumeName", func() {
+		It("should succeed to insert vol to DB after create it", func() {
+			fakeScbeDataModel.GetVolumeReturns(scbe.ScbeVolume{}, nil)
+			fakeScbeRestClient.CreateVolumeReturns(scbe.ScbeVolumeInfo{Name: "v1", Wwn: "wwn1", Profile: "gold"}, nil)
+			fakeScbeDataModel.InsertVolumeReturns(nil)
+			opts := make(map[string]interface{})
+			opts[scbe.OptionNameForVolumeSize] = "100"
+			opts[scbe.OptionNameForServiceName] = "gold"
+
+			volFake := "fakevol_name"
+			req := resources.CreateVolumeRequest{Name: volFake, Backend: resources.SCBE, Opts: opts}
+			_, err := client.CreateVolumeName(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeScbeDataModel.InsertVolumeCallCount()).To(Equal(1))
+			name, wwn, fstype := fakeScbeDataModel.InsertVolumeArgsForCall(0)
+			Expect(name).To(Equal(volFake))
+			Expect(wwn).To(Equal("wwn1"))
+			Expect(fstype).To(Equal("ext4"))
+		})
+
+		It("should succeed to insert vol to DB after create it with opts: volumeNameMaxLen = 16", func() {
+			fakeScbeDataModel.GetVolumeReturns(scbe.ScbeVolume{}, nil)
+			fakeScbeRestClient.CreateVolumeReturns(scbe.ScbeVolumeInfo{Name: "v1", Wwn: "wwn1", Profile: "gold"}, nil)
+			fakeScbeDataModel.InsertVolumeReturns(nil)
+			opts := make(map[string]interface{})
+			opts[scbe.OptionNameForVolumeSize] = "100"
+			opts[scbe.OptionNameForServiceName] = "gold"
+			opts["volumeNameMaxLen"] = 16
+
+			volFake := "fakevol_name"
+			req := resources.CreateVolumeRequest{Name: volFake, Backend: resources.SCBE, Opts: opts}
+			createdVolumeName, err := client.CreateVolumeName(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeScbeDataModel.InsertVolumeCallCount()).To(Equal(1))
+			name, wwn, fstype := fakeScbeDataModel.InsertVolumeArgsForCall(0)
+			Expect(name).To(Equal(createdVolumeName))
+			Expect(name).NotTo(Equal(volFake))
+			Expect(wwn).To(Equal("wwn1"))
+			Expect(fstype).To(Equal("ext4"))
+		})
+
+		It("should succeed to insert vol to DB after create it with opts: volumeNameMaxLen = 16, and fake name len > 16", func() {
+			fakeScbeDataModel.GetVolumeReturns(scbe.ScbeVolume{}, nil)
+			fakeScbeRestClient.CreateVolumeReturns(scbe.ScbeVolumeInfo{Name: "v1", Wwn: "wwn1", Profile: "gold"}, nil)
+			fakeScbeDataModel.InsertVolumeReturns(nil)
+			opts := make(map[string]interface{})
+			opts[scbe.OptionNameForVolumeSize] = "100"
+			opts[scbe.OptionNameForServiceName] = "gold"
+			opts["volumeNameMaxLen"] = 16
+
+			volFake := "fakevol_name_name_name"
+			req := resources.CreateVolumeRequest{Name: volFake, Backend: resources.SCBE, Opts: opts}
+			createdVolumeName, err := client.CreateVolumeName(req)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fakeScbeDataModel.InsertVolumeCallCount()).To(Equal(1))
+			name, wwn, fstype := fakeScbeDataModel.InsertVolumeArgsForCall(0)
+			Expect(name).To(Equal(createdVolumeName))
+			Expect(name).NotTo(Equal(volFake))
+			Expect(wwn).To(Equal("wwn1"))
+			Expect(fstype).To(Equal("ext4"))
+		})
+
+		It("should failed to create volume after re-compose the volume name 3 times since storage always retrun vol dup error", func() {
+			fakeScbeDataModel.GetVolumeReturns(scbe.ScbeVolume{}, nil)
+			fakeScbeRestClient.CreateVolumeReturns(scbe.ScbeVolumeInfo{Name: "v1", Wwn: "wwn1", Profile: "gold"}, fakeDupErr)
+			fakeScbeDataModel.InsertVolumeReturns(fakeDupErr)
+			opts := make(map[string]interface{})
+			opts[scbe.OptionNameForVolumeSize] = "100"
+			opts[scbe.OptionNameForServiceName] = "gold"
+
+			volFake := "fakevol_name"
+			req := resources.CreateVolumeRequest{Name: volFake, Backend: resources.SCBE, Opts: opts}
+			createdVolumeName, err := client.CreateVolumeName(req)
+			Expect(err).To(HaveOccurred())
+			Expect(volFake).NotTo(Equal(createdVolumeName))
+		})
+
+		It("should failed to create volume, since volume name length is too long for storage, need provisioner resend request", func() {
+			fakeScbeDataModel.GetVolumeReturns(scbe.ScbeVolume{}, nil)
+			fakeScbeRestClient.CreateVolumeReturns(scbe.ScbeVolumeInfo{Name: "v1", Wwn: "wwn1", Profile: "gold"}, fakeVolLenErr)
+			fakeScbeDataModel.InsertVolumeReturns(fakeVolLenErr)
+			opts := make(map[string]interface{})
+			opts[scbe.OptionNameForVolumeSize] = "100"
+			opts[scbe.OptionNameForServiceName] = "gold"
+
+			volFake := "fakevol_name_too_long"
+			req := resources.CreateVolumeRequest{Name: volFake, Backend: resources.SCBE, Opts: opts}
+			_, err := client.CreateVolumeName(req)
+			Expect(err).To(HaveOccurred())
+		})
+
+
+	})
+})
+
 
 func GenFakeScbeRestClient(newClient scbe.ScbeRestClient) scbe.ScbeRestClientGen {
 	return func(conInfo resources.ConnectionInfo) (scbe.ScbeRestClient, error) {

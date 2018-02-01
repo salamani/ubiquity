@@ -147,7 +147,10 @@ func (s *spectrumLocalClient) Activate(activateRequest resources.ActivateRequest
 
 // Add a new interface here to get the volueName
 func (s *spectrumLocalClient) CreateVolumeName(createVolumeRequest resources.CreateVolumeRequest) (volueName string, err error) {
-
+	err = s.CreateVolume(createVolumeRequest)
+	if err != nil {
+		return "", err
+	}
 	return "", nil
 }
 
