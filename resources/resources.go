@@ -142,7 +142,8 @@ type UbiquityPluginSslConfig struct {
 
 type StorageClient interface {
 	Activate(activateRequest ActivateRequest) error
-	CreateVolume(createVolumeRequest CreateVolumeRequest) (string, error)
+	CreateVolume(createVolumeRequest CreateVolumeRequest) error
+	CreateVolumeName(createVolumeRequest CreateVolumeRequest) (string, error)
 	RemoveVolume(removeVolumeRequest RemoveVolumeRequest) error
 	ListVolumes(listVolumeRequest ListVolumesRequest) ([]Volume, error)
 	GetVolume(getVolumeRequest GetVolumeRequest) (Volume, error)

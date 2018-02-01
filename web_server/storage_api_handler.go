@@ -112,13 +112,25 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 
 		h.locker.WriteLock(createVolumeRequest.Name) // will ensure no other caller can create volume with same name concurrently
 		defer h.locker.WriteUnlock(createVolumeRequest.Name)
-		volumeName, err := backend.CreateVolume(createVolumeRequest)
+		//err = backend.CreateVolume(createVolumeRequest)
+		createdVolumeName,err := backend.CreateVolumeName(createVolumeRequest)
 		if err != nil {
 			utils.WriteResponse(w, 409, &resources.GenericResponse{Err: err.Error()})
 			return
 		}
 
-		volumeResponse := resources.VolumeResponse{volumeName}
+		/*
+		createdVolumeName, exist := createVolumeRequest.Opts["createdVolumeName"]
+
+
+		if ! exist {
+			h.logger.Error("createdVolumeName-not-found", logs.Args{{"createdVolumeName", createVolumeRequest}})
+			utils.WriteResponse(w, http.StatusNotFound, &resources.GenericResponse{Err: "createdVolumeName-not-found"})
+			return
+		}
+		*/
+
+		volumeResponse := resources.VolumeResponse{createdVolumeName}
 		utils.WriteResponse(w, http.StatusOK, volumeResponse)
 	}
 }

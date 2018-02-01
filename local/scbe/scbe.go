@@ -211,19 +211,35 @@ func (s *scbeLocalClient) Activate(activateRequest resources.ActivateRequest) er
 	return nil
 }
 
+// Create the volume and return the volumeName to the provisioner
+func (s *scbeLocalClient) CreateVolumeName(createVolumeRequest resources.CreateVolumeRequest) (volueName string, err error) {
+	defer s.logger.Trace(logs.DEBUG)()
+	err = s.CreateVolume(createVolumeRequest)
+	if err != nil {
+		return "", s.logger.ErrorRet(err, "createVolumeName failed")
+	}
+	createVolumeName, exist := createVolumeRequest.Opts["createdVolumeName"];
+	if !exist {
+		return "", s.logger.ErrorRet(&createdVolumeNameNotFoundError{"createdVolumeName"}, "failed")
+	}
+
+	volueName = createVolumeName.(string)
+	return volueName, nil
+}
+
 // CreateVolume parse and validate the given options and trigger the volume creation
-func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) (volumeName string, err error) {
+func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) (err error) {
 	defer s.logger.Trace(logs.DEBUG)()
 
 	// authenticate
 	scbeRestClient, err := s.getAuthenticatedScbeRestClient(createVolumeRequest.CredentialInfo)
 	if err != nil {
-		return "", s.logger.ErrorRet(err, "getAuthenticatedScbeRestClient failed")
+		return s.logger.ErrorRet(err, "getAuthenticatedScbeRestClient failed")
 	}
 
 	// verify volume does not exist
 	if _, err = s.dataModel.GetVolume(createVolumeRequest.Name, false); err != nil {
-		return "", s.logger.ErrorRet(err, "dataModel.GetVolume failed", logs.Args{{"name", createVolumeRequest.Name}})
+		return s.logger.ErrorRet(err, "dataModel.GetVolume failed", logs.Args{{"name", createVolumeRequest.Name}})
 	}
 
 	// validate size option given
@@ -237,7 +253,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	// validate size is a number
 	size, err := strconv.Atoi(sizeStr.(string))
 	if err != nil {
-		return "", s.logger.ErrorRet(&provisionParamIsNotNumberError{createVolumeRequest.Name, OptionNameForVolumeSize}, "failed")
+		return s.logger.ErrorRet(&provisionParamIsNotNumberError{createVolumeRequest.Name, OptionNameForVolumeSize}, "failed")
 	}
 
 	// validate fstype option given
@@ -251,7 +267,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 		fstype = fstypeInt.(string)
 	}
 	if !utils.StringInSlice(fstype, SupportedFSTypes) {
-		return "", s.logger.ErrorRet(
+		return s.logger.ErrorRet(
 			&FsTypeNotSupportedError{createVolumeRequest.Name, fstype, strings.Join(SupportedFSTypes, ",")}, "failed")
 	}
 
@@ -269,12 +285,16 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	volNamePrefixForCheckLengthLen := len(volNamePrefixForCheckLength)
 	if len(volNameToCreate) > MaxVolumeNameLength {
 		maxVolLength := MaxVolumeNameLength - volNamePrefixForCheckLengthLen // its dynamic because it depends on the UbiquityInstanceName len
-		return "", s.logger.ErrorRet(&VolumeNameExceededMaxLengthError{createVolumeRequest.Name, maxVolLength}, "failed")
+		return s.logger.ErrorRet(&VolumeNameExceededMaxLengthError{createVolumeRequest.Name, maxVolLength}, "failed")
 	}
 
 	// Provision the volume on SCBE service
 	volInfo := ScbeVolumeInfo{}
 	//volInfo, err = scbeRestClient.CreateVolume(volNameToCreate, profile, size)
+
+
+	//createVolumeRequest.Name = "fly_helloxaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	//s.logger.Info("new name is ", logs.Args{{"volumename", createVolumeRequest.Name}})
 
 	volNameMaxLen := MaxVolumeNameLength
 	if volNameLen, exists := createVolumeRequest.Opts["volumeNameMaxLen"]; exists {
@@ -287,6 +307,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 		volInfo, err = scbeRestClient.CreateVolume(volNameToCreate, profile, size)
 
 		if err == nil {
+			s.logger.Info("no errors here ")
 			break
 		} else if strings.Contains(err.Error(), VolumeNameInvalidMessage) {
 			// if volume name is too long, for db volume use "uibm-ubiquity-db" instead, for others pv, return error to
@@ -295,30 +316,33 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 				volNameToCreate = fmt.Sprintf(ComposeVolumeName_DS8k, database.VolumeNameSuffix)
 				createVolumeRequest.Name = database.VolumeNameSuffix
 			} else {
-				return "volume name is invalid", s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
+				return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
 			}
 		} else if strings.Contains(err.Error(), VolumeNameDupMessage){
 			// if composed volume name is dup in SCB side, will re-compose
 			volNameToCreate = composeVolueName(volNameMaxLen)
 			createVolumeRequest.Name = volNameToCreate
 		} else {
-			return "", s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
+			return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
 		}
 
 		if i == 4 {
-			return "tried enough times,", s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
+			return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
 		}
 	}
 
+	//s.logger.Info("new name is ", logs.Args{{"volumename", createVolumeRequest.Name}})
+
 	err = s.dataModel.InsertVolume(createVolumeRequest.Name, volInfo.Wwn, fstype)
 	if err != nil {
-		return "", s.logger.ErrorRet(err, "dataModel.InsertVolume failed")
+		return s.logger.ErrorRet(err, "dataModel.InsertVolume failed")
 	}
 
-	volumeResponse := resources.VolumeResponse{createVolumeRequest.Name}
+	//read volume name created
+	createVolumeRequest.Opts["createdVolumeName"] = createVolumeRequest.Name
 
 	s.logger.Info("succeeded", logs.Args{{"volume", createVolumeRequest.Name}, {"profile", profile}})
-	return volumeResponse.Name, nil
+	return nil
 }
 
 func (s *scbeLocalClient) RemoveVolume(removeVolumeRequest resources.RemoveVolumeRequest) (err error) {

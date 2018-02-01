@@ -107,6 +107,14 @@ func (e *provisionParamIsNotNumberError) Error() string {
 		e.volName, e.param)
 }
 
+type createdVolumeNameNotFoundError struct {
+	parm string
+}
+
+func (e *createdVolumeNameNotFoundError) Error() string {
+	return fmt.Sprintf("the key [%s] not found", e.parm)
+}
+
 type volAlreadyAttachedError struct {
 	volName  string
 	hostName string

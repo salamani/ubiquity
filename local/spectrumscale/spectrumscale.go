@@ -145,7 +145,14 @@ func (s *spectrumLocalClient) Activate(activateRequest resources.ActivateRequest
 	return nil
 }
 
-func (s *spectrumLocalClient)CreateVolume(createVolumeRequest resources.CreateVolumeRequest) (voluemName string, err error) {
+// Add a new interface here to get the volueName
+func (s *spectrumLocalClient) CreateVolumeName(createVolumeRequest resources.CreateVolumeRequest) (volueName string, err error) {
+
+	return "", nil
+}
+
+
+func (s *spectrumLocalClient)CreateVolume(createVolumeRequest resources.CreateVolumeRequest) (err error) {
 	s.logger.Println("spectrumLocalClient: create start")
 	defer s.logger.Println("spectrumLocalClient: create end")
 
@@ -153,30 +160,30 @@ func (s *spectrumLocalClient)CreateVolume(createVolumeRequest resources.CreateVo
 
 	if err != nil {
 		s.logger.Println(err.Error())
-		return "", err
+		return err
 	}
 
 	if volExists {
-		return "", fmt.Errorf("Volume already exists")
+		return fmt.Errorf("Volume already exists")
 	}
 
 	s.logger.Printf("Opts for create: %#v\n", createVolumeRequest.Opts)
 
 	if len(createVolumeRequest.Opts) == 0 {
 		//fileset
-		return "", s.createFilesetVolume(s.config.DefaultFilesystemName, createVolumeRequest.Name, createVolumeRequest.Opts)
+		return s.createFilesetVolume(s.config.DefaultFilesystemName, createVolumeRequest.Name, createVolumeRequest.Opts)
 	}
 	s.logger.Printf("Trying to determine type for request\n")
 	userSpecifiedType, err := determineTypeFromRequest(s.logger, createVolumeRequest.Opts)
 	if err != nil {
 		s.logger.Printf("Error determining type: %s\n", err.Error())
-		return "", err
+		return err
 	}
 	s.logger.Printf("Volume type requested: %s", userSpecifiedType)
 	isExistingVolume, filesystem, existingFileset, existingLightWeightDir, err := s.validateAndParseParams(s.logger, createVolumeRequest.Opts)
 	if err != nil {
 		s.logger.Printf("Error in validate params: %s\n", err.Error())
-		return "", err
+		return err
 	}
 
 	s.logger.Printf("Params for create: %s,%s,%s,%s\n", isExistingVolume, filesystem, existingFileset, existingLightWeightDir)
@@ -184,26 +191,26 @@ func (s *spectrumLocalClient)CreateVolume(createVolumeRequest resources.CreateVo
 	if isExistingVolume && userSpecifiedType == TypeFileset {
 		quota, quotaSpecified := createVolumeRequest.Opts[Quota]
 		if quotaSpecified {
-			return "", s.updateDBWithExistingFilesetQuota(filesystem, createVolumeRequest.Name, existingFileset, quota.(string), createVolumeRequest.Opts)
+			return s.updateDBWithExistingFilesetQuota(filesystem, createVolumeRequest.Name, existingFileset, quota.(string), createVolumeRequest.Opts)
 		}
-		return "", s.updateDBWithExistingFileset(filesystem, createVolumeRequest.Name, existingFileset, createVolumeRequest.Opts)
+		return s.updateDBWithExistingFileset(filesystem, createVolumeRequest.Name, existingFileset, createVolumeRequest.Opts)
 	}
 
 	if isExistingVolume && userSpecifiedType == TypeLightweight {
-		return "", s.updateDBWithExistingDirectory(filesystem, createVolumeRequest.Name, existingFileset, existingLightWeightDir, createVolumeRequest.Opts)
+		return s.updateDBWithExistingDirectory(filesystem, createVolumeRequest.Name, existingFileset, existingLightWeightDir, createVolumeRequest.Opts)
 	}
 
 	if userSpecifiedType == TypeFileset {
 		quota, quotaSpecified := createVolumeRequest.Opts[Quota]
 		if quotaSpecified {
-			return "", s.createFilesetQuotaVolume(filesystem, createVolumeRequest.Name, quota.(string), createVolumeRequest.Opts)
+			return s.createFilesetQuotaVolume(filesystem, createVolumeRequest.Name, quota.(string), createVolumeRequest.Opts)
 		}
-		return "", s.createFilesetVolume(filesystem, createVolumeRequest.Name, createVolumeRequest.Opts)
+		return s.createFilesetVolume(filesystem, createVolumeRequest.Name, createVolumeRequest.Opts)
 	}
 	if userSpecifiedType == TypeLightweight {
-		return "", s.createLightweightVolume(filesystem, createVolumeRequest.Name, existingFileset, createVolumeRequest.Opts)
+		return s.createLightweightVolume(filesystem, createVolumeRequest.Name, existingFileset, createVolumeRequest.Opts)
 	}
-	return "", fmt.Errorf("Internal error")
+	return fmt.Errorf("Internal error")
 }
 
 func (s *spectrumLocalClient) RemoveVolume(removeVolumeRequest resources.RemoveVolumeRequest) (err error) {
