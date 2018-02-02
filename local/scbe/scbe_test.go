@@ -702,8 +702,8 @@ var _ = Describe("scbeLocalClient", func() {
 		fakeScbeDataModel  *fakes.FakeScbeDataModelWrapper
 		fakeScbeRestClient *fakes.FakeScbeRestClient
 		fakeConfig         resources.ScbeConfig
-		fakeDupErr         error = errors.New("create failed because the volume name is duplicatation from Storage")
-		fakeVolLenErr	   error = errors.New("the length of the volume name for DS8k, should less than 16 chars")
+		fakeDupErr         error = errors.New("The volume name already exists")
+		fakeVolLenErr	   error = errors.New("Volume names are limited to 16 characters")
 		err                error
 	)
 	BeforeEach(func() {

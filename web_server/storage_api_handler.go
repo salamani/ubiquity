@@ -119,17 +119,6 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 			return
 		}
 
-		/*
-		createdVolumeName, exist := createVolumeRequest.Opts["createdVolumeName"]
-
-
-		if ! exist {
-			h.logger.Error("createdVolumeName-not-found", logs.Args{{"createdVolumeName", createVolumeRequest}})
-			utils.WriteResponse(w, http.StatusNotFound, &resources.GenericResponse{Err: "createdVolumeName-not-found"})
-			return
-		}
-		*/
-
 		volumeResponse := resources.VolumeResponse{createdVolumeName}
 		utils.WriteResponse(w, http.StatusOK, volumeResponse)
 	}
