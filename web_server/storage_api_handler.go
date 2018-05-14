@@ -24,7 +24,6 @@ import (
 	"github.com/IBM/ubiquity/model"
 	"github.com/IBM/ubiquity/database"
 	"github.com/IBM/ubiquity/utils/logs"
-	"context"
 )
 
 type StorageApiHandler struct {
