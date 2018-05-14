@@ -24,6 +24,7 @@ import (
 	"github.com/IBM/ubiquity/model"
 	"github.com/IBM/ubiquity/database"
 	"github.com/IBM/ubiquity/utils/logs"
+	"context"
 )
 
 type StorageApiHandler struct {
@@ -39,7 +40,9 @@ func NewStorageApiHandler(backends map[string]resources.StorageClient, config re
 
 func (h *StorageApiHandler) Activate() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		
 		defer h.logger.Trace(logs.DEBUG)()
+		h.logger.Info("###what is the context? ", logs.Args{{"context", req.Context()}})
 		activateRequest := resources.ActivateRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &activateRequest)
 		if err != nil {
@@ -86,6 +89,7 @@ func (h *StorageApiHandler) Activate() http.HandlerFunc {
 func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		defer h.logger.Trace(logs.DEBUG)()
+		h.logger.Info("###what is the context? ", logs.Args{{"context", req.Context()}})
 		createVolumeRequest := resources.CreateVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &createVolumeRequest)
 		if err != nil {
