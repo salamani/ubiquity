@@ -170,6 +170,7 @@ type CreateVolumeRequest struct {
 	Name           string
 	Backend        string
 	Opts           map[string]interface{}
+	Id             string
 }
 
 type RemoveVolumeRequest struct {

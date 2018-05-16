@@ -18,6 +18,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -26,8 +27,8 @@ import (
 	"strings"
 
 	"github.com/IBM/ubiquity/resources"
-	"github.com/gorilla/mux"
 	"github.com/IBM/ubiquity/utils/logs"
+	"github.com/gorilla/mux"
 )
 
 func ExtractErrorResponse(response *http.Response) error {
@@ -91,15 +92,23 @@ func HttpExecuteUserAuth(httpClient *http.Client, requestType string, requestURL
 
 }
 
-func HttpExecute(httpClient *http.Client, requestType string, requestURL string, rawPayload interface{}) (*http.Response, error) {
+func HttpExecute(httpClient *http.Client, requestType string, requestURL string, rawPayload interface{}, request_id string) (*http.Response, error) {
 	logger := logs.GetLogger()
 	payload, err := json.MarshalIndent(rawPayload, "", " ")
+
+	message := fmt.Sprintf("#### Got request id %s ", request_id)
+	logger.Info(message)
+
 	if err != nil {
 		err = fmt.Errorf("Internal error marshalling params %#v", err)
 		return nil, logger.ErrorRet(err, "failed")
 	}
 
+	ctx := context.WithValue(context.Background(), "request_id", request_id)
+
 	request, err := http.NewRequest(requestType, requestURL, bytes.NewBuffer(payload))
+	request = request.WithContext(ctx)
+
 	if err != nil {
 		err = fmt.Errorf("Error in creating request %#v", err)
 		return nil, logger.ErrorRet(err, "failed")
@@ -132,7 +141,6 @@ func Unmarshal(r *http.Request, object interface{}) error {
 
 	return nil
 }
-
 
 func UnmarshalDataFromRequest(r *http.Request, object interface{}) error {
 	body, err := ioutil.ReadAll(r.Body)

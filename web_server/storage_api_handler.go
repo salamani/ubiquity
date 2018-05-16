@@ -89,6 +89,7 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		defer h.logger.Trace(logs.DEBUG)()
 		h.logger.Info("###what is the context? ", logs.Args{{"context", req.Context()}})
+		h.logger.Info("###Context values: ", logs.Args{{"context_vals", req.Context().Value("request_id")}})
 		createVolumeRequest := resources.CreateVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &createVolumeRequest)
 		if err != nil {
