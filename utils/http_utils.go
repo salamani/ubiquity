@@ -108,7 +108,8 @@ func HttpExecute(httpClient *http.Client, requestType string, requestURL string,
 	ctx := context.WithValue(request.Context(), "ubiqContext", request_context)
 	request = request.WithContext(ctx)
 	
-	request.Header.Set("ubiqContext",  json.MarshalIndent(request_context, "", " "))
+	json_request, _ := json.MarshalIndent(request_context, "", " ")
+	request.Header.Set("ubiqContext", json_request)
 	
 	message = fmt.Sprintf("request general context %s ", request.Context())
 	logger.Info(message)
