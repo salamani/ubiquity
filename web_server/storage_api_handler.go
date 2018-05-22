@@ -24,6 +24,7 @@ import (
 	"github.com/IBM/ubiquity/model"
 	"github.com/IBM/ubiquity/database"
 	"github.com/IBM/ubiquity/utils/logs"
+	"reflect"
 )
 
 type StorageApiHandler struct {
@@ -95,7 +96,9 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 		defer h.logger.Trace(logs.DEBUG)()
 		
 		h.logger.Info("###what is the context? ", logs.Args{{"request", req}})
-		h.logger.Info("###what is the context? ", logs.Args{{"requestid from heder ? ", req.Header.Get("X-Request-ID")}})
+		 
+		h.logger.Info("###header1 ", logs.Args{{"requestid from heder ? ", req.Header.Get("ubiqContext"))}})
+		h.logger.Info("###header2 ", logs.Args{{"requst header type ? ", reflect.TypeOf(req.Header.Get("ubiqContext"))}})
 		h.logger.Info("###what is the context? ", logs.Args{{"all_the_context", req.Context()}})
 		h.logger.Info("###Context values: ", logs.Args{{"context", req.Context().Value("ubiq_context").(resources.RequestContext)}})
 
