@@ -93,9 +93,12 @@ func (h *StorageApiHandler) Activate() http.HandlerFunc {
 func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		defer h.logger.Trace(logs.DEBUG)()
-		h.logger.Info("###what is the context? ", logs.Args{{"context", req.Context().Value("ubiq_context").(resources.RequestContext)}})
+		
+		h.logger.Info("###what is the context? ", logs.Args{{"request", req}})
+		h.logger.Info("###what is the context? ", logs.Args{{"requestid from heder ? ", req.Header.Get("X-Request-ID")}})
 		h.logger.Info("###what is the context? ", logs.Args{{"all_the_context", req.Context()}})
 		h.logger.Info("###Context values: ", logs.Args{{"context", req.Context().Value("ubiq_context").(resources.RequestContext)}})
+
 		createVolumeRequest := resources.CreateVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &createVolumeRequest)
 		if err != nil {
