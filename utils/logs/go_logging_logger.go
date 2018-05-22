@@ -53,7 +53,7 @@ func getContextValues(context resources.RequestContext) Args{
 func getIdOfContext(args []Args) (int, int){
 	for args_index, a := range args {
 		for value_index , v := range a {
-			if v.Name == "context" {
+			if v.Name == "context" and v.value != nil{
 				return args_index, value_index
 			}
 		}

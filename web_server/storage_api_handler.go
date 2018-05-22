@@ -42,7 +42,11 @@ func (h *StorageApiHandler) Activate() http.HandlerFunc {
 		
 		defer h.logger.Trace(logs.DEBUG)()
 		h.logger.Info("###what is the general context? ", logs.Args{{"general context", req.Context()}})
-		h.logger.Info("###what is the context? ", logs.Args{{"context", req.Context().Value("ubiq_context").(resources.RequestContext)}})
+		ctx_value := req.Context().Value("ubiq_context")
+		if ctx_value != nil{
+			ctx_value = ctx_value.(resources.RequestContext)
+		}
+		h.logger.Info("###what is the context? ", logs.Args{{"context", ctx_value}})
 		activateRequest := resources.ActivateRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &activateRequest)
 		if err != nil {
