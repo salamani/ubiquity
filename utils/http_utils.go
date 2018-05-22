@@ -107,7 +107,10 @@ func HttpExecute(httpClient *http.Client, requestType string, requestURL string,
 	request, err := http.NewRequest(requestType, requestURL, bytes.NewBuffer(payload))
 	ctx := context.WithValue(request.Context(), "ubiq_context", request_context)
 	request = request.WithContext(ctx)
-	message = fmt.Sprintf("#### request context %s ", request.Context().Value("ubiq_context"))
+	message = fmt.Sprintf("request general context %s ", request.Context())
+	logger.Info(message)
+	message = fmt.Sprintf("request context value %s ", request.Context().Value("ubiq_context"))
+	logger.Info(message)
 
 	if err != nil {
 		err = fmt.Errorf("Error in creating request %#v", err)
