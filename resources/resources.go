@@ -170,7 +170,7 @@ type CreateVolumeRequest struct {
 	Name           string
 	Backend        string
 	Opts           map[string]interface{}
-	Id             string
+	Context        RequestContext
 }
 
 type RemoveVolumeRequest struct {
@@ -285,4 +285,8 @@ type FlexVolumeAttachRequest struct {
 type FlexVolumeDetachRequest struct {
 	Name string `json:"name"`
 	Host string `json:"host"`
+}
+
+type RequestContext struct {
+	Id string
 }

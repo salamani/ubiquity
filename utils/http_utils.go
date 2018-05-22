@@ -92,11 +92,11 @@ func HttpExecuteUserAuth(httpClient *http.Client, requestType string, requestURL
 
 }
 
-func HttpExecute(httpClient *http.Client, requestType string, requestURL string, rawPayload interface{}, request_id string) (*http.Response, error) {
+func HttpExecute(httpClient *http.Client, requestType string, requestURL string, rawPayload interface{}, request_context resources.RequestContext) (*http.Response, error) {
 	logger := logs.GetLogger()
 	payload, err := json.MarshalIndent(rawPayload, "", " ")
 
-	message := fmt.Sprintf("#### Got request id %s ", request_id)
+	message := fmt.Sprintf("#### Got request id %s ", request_context.Id)
 	logger.Info(message)
 
 	if err != nil {
@@ -104,10 +104,10 @@ func HttpExecute(httpClient *http.Client, requestType string, requestURL string,
 		return nil, logger.ErrorRet(err, "failed")
 	}
 
-	ctx := context.WithValue(context.Background(), "request_id", request_id)
-
 	request, err := http.NewRequest(requestType, requestURL, bytes.NewBuffer(payload))
+	ctx := context.WithValue(request.Context(), "ubiq_context", request_context)
 	request = request.WithContext(ctx)
+	message = fmt.Sprintf("#### request context %s ", request.Context().Value("ubiq_context"))
 
 	if err != nil {
 		err = fmt.Errorf("Error in creating request %#v", err)

@@ -28,13 +28,13 @@ const (
     ERROR
 )
 
-type NameValue struct {
+type nameValue struct {
     Name string
     Value interface{}
 }
 
 // Args provides a way to safely pass additional params in a name=value format to the formatted log string.
-type Args []NameValue
+type Args []nameValue
 
 // Logger is the interface that wraps the basic log methods
 type Logger interface {
@@ -55,6 +55,6 @@ type Logger interface {
     Trace(level Level, args ...Args) func()
 }
 
-func (param NameValue) String() string {
+func (param nameValue) String() string {
     return fmt.Sprintf("{" + param.Name + "=%v}", param.Value)
 }
