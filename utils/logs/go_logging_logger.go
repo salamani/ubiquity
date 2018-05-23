@@ -50,7 +50,7 @@ func newGoLoggingLogger(level Level, writer io.Writer) *goLoggingLogger {
 
 
 func getContextValues(context resources.RequestContext) Args{
-	return Args {{Name: "request_id", Value:context.Id}}
+	return Args {{Name: "request-id", Value:context.Id}}
 
 }
 
@@ -91,67 +91,52 @@ func GetGoID() uint64 {
 
 var GoIdToRequestIdMap = new(sync.Map)
 
-func (l *goLoggingLogger) Debug(str string, args ...Args) {
-	args = getArgsWithContext(args)
+func getArgsWithGoId(args []Args) []Args{
 	go_id :=  GetGoID()
-	request_id, exists := GoIdToRequestIdMap.Load(go_id)
+	context, exists := GoIdToRequestIdMap.Load(go_id)
 	if !exists {
-		request_id = "XXXXXXX"
+		context = resources.RequestContext{Id : "XXXXXXX"}
+	} else {
+		context = context.(resources.RequestContext)
 	}
 	
-	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
+	new_args := append(append(args, Args{{Name: "go-id ", Value: GetGoID()}}), getContextValues(context.(resources.RequestContext)))
+	return new_args
+}
+
+func (l *goLoggingLogger) Debug(str string, args ...Args) {
+	new_args := getArgsWithGoId(args)
     l.logger.Debugf(str + " %v", new_args)
 }
 
 func (l *goLoggingLogger) Info(str string, args ...Args) {
-	args = getArgsWithContext(args)
-	go_id :=  GetGoID()
-	request_id, exists := GoIdToRequestIdMap.Load(go_id)
-	if !exists {
-		request_id = "XXXXXXX"
-	}
-	
-	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
-    l.logger.Infof(str + " %v", new_args)
+	args = getArgsWithGoId(args)
+    l.logger.Infof(str + " %v", args)
 }
 
 func (l *goLoggingLogger) Error(str string, args ...Args) {
-	args = getArgsWithContext(args)
-	go_id :=  GetGoID()
-	request_id, exists := GoIdToRequestIdMap.Load(go_id)
-	if !exists {
-		request_id = "XXXXXXX"
-	}
-	
-	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
-    l.logger.Errorf(str + " %v", new_args)
+	args = getArgsWithGoId(args)
+    l.logger.Errorf(str + " %v", args)
 }
 
 func (l *goLoggingLogger) ErrorRet(err error, str string, args ...Args) error {
-	args = getArgsWithContext(args)
+	args = getArgsWithGoId(args)
     l.logger.Errorf(str + " %v ", append(args, Args{{"error", err}}))
     return err
 }
 
 func (l *goLoggingLogger) Trace(level Level, args ...Args) func() {
-	args = getArgsWithContext(args)
-	go_id :=  GetGoID()
-	request_id, exists := GoIdToRequestIdMap.Load(go_id)
-	if !exists {
-		request_id = "XXXXXXX"
-	}
-	
-	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
+	args = getArgsWithGoId(args)
     switch level {
     case DEBUG:
-        l.logger.Debug(traceEnter, new_args)
-        return func() { l.logger.Debug(traceExit, new_args) }
+        l.logger.Debug(traceEnter, args)
+        return func() { l.logger.Debug(traceExit, args) }
     case INFO:
-        l.logger.Info(traceEnter, new_args)
-        return func() { l.logger.Info(traceExit, new_args) }
+        l.logger.Info(traceEnter, args)
+        return func() { l.logger.Info(traceExit, args) }
     case ERROR:
-        l.logger.Error(traceEnter, new_args)
-        return func() { l.logger.Error(traceExit, new_args) }
+        l.logger.Error(traceEnter, args)
+        return func() { l.logger.Error(traceExit, args) }
     default:
         panic("unknown level")
     }

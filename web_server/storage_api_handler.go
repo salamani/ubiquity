@@ -98,7 +98,7 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		request_context := getContextFromRequest(req)
 		go_id := logs.GetGoID()
-		logs.GoIdToRequestIdMap.Store(go_id, request_context.Id)
+		logs.GoIdToRequestIdMap.Store(go_id, request_context)
 		defer logs.GoIdToRequestIdMap.Delete(go_id)
 		
 		defer h.logger.Trace(logs.DEBUG, logs.Args{{ Name: "context", Value : request_context}})()
