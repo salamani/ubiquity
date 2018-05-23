@@ -97,7 +97,7 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 		
 		h.logger.Info("###what is the context? ", logs.Args{{"request", req}})
 		 
-		h.logger.Info("###header1 ", logs.Args{{"requestid from heder ? ", req.Header.Get("ubiqContext"))}})
+		h.logger.Info("###header1 ", logs.Args{{"requestid from heder ? ", req.Header.Get("X-Request-ID")}})
 		h.logger.Info("###header2 ", logs.Args{{"requst header type ? ", reflect.TypeOf(req.Header.Get("ubiqContext"))}})
 		h.logger.Info("###what is the context? ", logs.Args{{"all_the_context", req.Context()}})
 		h.logger.Info("###Context values: ", logs.Args{{"context", req.Context().Value("ubiq_context").(resources.RequestContext)}})

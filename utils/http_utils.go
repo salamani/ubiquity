@@ -66,7 +66,7 @@ func FormatURL(url string, entries ...string) string {
 	return fmt.Sprintf("%s%s", base, suffix)
 }
 
-func HttpExecuteUserAuth(httpClient *Lstat, requestType string, requestURL string, user string, password string, rawPayload interface{}) (*http.Response, error) {
+func HttpExecuteUserAuth(httpClient *http.Client, requestType string, requestURL string, user string, password string, rawPayload interface{}) (*http.Response, error) {
 	logger := logs.GetLogger()
 	payload, err := json.MarshalIndent(rawPayload, "", " ")
 	if err != nil {
@@ -108,8 +108,8 @@ func HttpExecute(httpClient *http.Client, requestType string, requestURL string,
 	ctx := context.WithValue(request.Context(), "ubiqContext", request_context)
 	request = request.WithContext(ctx)
 	
-	json_request, _ := json.MarshalIndent(request_context, "", " ")
-	request.Header.Set("ubiqContext", json_request)
+	//json_request, _ := json.MarshalIndent(request_context, "", " ")
+	request.Header.Set("X-Request-ID", request_context.Id)
 	
 	message = fmt.Sprintf("request general context %s ", request.Context())
 	logger.Info(message)
