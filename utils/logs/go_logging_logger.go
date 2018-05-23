@@ -20,6 +20,9 @@ import (
     "github.com/op/go-logging"
     "io"
      "github.com/IBM/ubiquity/resources"
+     "runtime"
+     "bytes"
+     "strconv"
     
 )
 
@@ -76,20 +79,32 @@ func getArgsWithContext(args []Args) []Args{
 	return new_args
 }
 
+func getGID() uint64 {
+    b := make([]byte, 64)
+    b = b[:runtime.Stack(b, false)]
+    b = bytes.TrimPrefix(b, []byte("goroutine "))
+    b = b[:bytes.IndexByte(b, ' ')]
+    n, _ := strconv.ParseUint(string(b), 10, 64)
+    return n
+}
+
 
 func (l *goLoggingLogger) Debug(str string, args ...Args) {
 	args = getArgsWithContext(args)
-    l.logger.Debugf(str + " %v", args)
+	new_args := append(args, Args{{Name: "go Id ", Value: getGID()}})
+    l.logger.Debugf(str + " %v", new_args)
 }
 
 func (l *goLoggingLogger) Info(str string, args ...Args) {
 	args = getArgsWithContext(args)
-    l.logger.Infof(str + " %v", args)
+	new_args := append(args, Args{{Name: "go-id ", Value: getGID()}})
+    l.logger.Infof(str + " %v", new_args)
 }
 
 func (l *goLoggingLogger) Error(str string, args ...Args) {
 	args = getArgsWithContext(args)
-    l.logger.Errorf(str + " %v", args)
+	new_args := append(args, Args{{Name: "go-id ", Value: getGID()}})
+    l.logger.Errorf(str + " %v", new_args)
 }
 
 func (l *goLoggingLogger) ErrorRet(err error, str string, args ...Args) error {
@@ -100,16 +115,17 @@ func (l *goLoggingLogger) ErrorRet(err error, str string, args ...Args) error {
 
 func (l *goLoggingLogger) Trace(level Level, args ...Args) func() {
 	args = getArgsWithContext(args)
+	new_args := append(args, Args{{Name: "go-id ", Value: getGID()}})
     switch level {
     case DEBUG:
-        l.logger.Debug(traceEnter, args)
-        return func() { l.logger.Debug(traceExit, args) }
+        l.logger.Debug(traceEnter, new_args)
+        return func() { l.logger.Debug(traceExit, new_args) }
     case INFO:
-        l.logger.Info(traceEnter, args)
-        return func() { l.logger.Info(traceExit, args) }
+        l.logger.Info(traceEnter, new_args)
+        return func() { l.logger.Info(traceExit, new_args) }
     case ERROR:
-        l.logger.Error(traceEnter, args)
-        return func() { l.logger.Error(traceExit, args) }
+        l.logger.Error(traceEnter, new_args)
+        return func() { l.logger.Error(traceExit, new_args) }
     default:
         panic("unknown level")
     }
