@@ -61,7 +61,7 @@ func (s *remoteClient) Activate(activateRequest resources.ActivateRequest) error
 }
 
 func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) error {
-	defer s.logger.Trace(logs.DEBUG, logs.Args{{Name: "request_id", Value: createVolumeRequest.Context.Id}})()
+	defer s.logger.Trace(logs.DEBUG, logs.Args{{Name: "context", Value: createVolumeRequest.Context}})()
 
 	createRemoteURL := utils.FormatURL(s.storageApiURL, "volumes")
 
@@ -72,13 +72,13 @@ func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRe
 	createVolumeRequest.CredentialInfo = s.config.CredentialInfo
 	response, err := utils.HttpExecute(s.httpClient, "POST", createRemoteURL, createVolumeRequest, createVolumeRequest.Context)
 	if err != nil {
-		return s.logger.ErrorRet(err, "utils.HttpExecute failed")
+		return s.logger.ErrorRet(err, "utils.HttpExecute failed", logs.Args{{Name: "context", Value: createVolumeRequest.Context}})
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return s.logger.ErrorRet(utils.ExtractErrorResponse(response), "failed", logs.Args{{"response", response}})
+		return s.logger.ErrorRet(utils.ExtractErrorResponse(response), "failed", logs.Args{{"response", response}, {Name: "context", Value: createVolumeRequest.Context}})
 	}
 
 	return nil

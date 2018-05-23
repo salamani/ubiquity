@@ -24,7 +24,6 @@ import (
 	"github.com/IBM/ubiquity/model"
 	"github.com/IBM/ubiquity/database"
 	"github.com/IBM/ubiquity/utils/logs"
-	"reflect"
 )
 
 type StorageApiHandler struct {
@@ -91,29 +90,30 @@ func (h *StorageApiHandler) Activate() http.HandlerFunc {
 	}
 }
 
+func getContextFromRequest(req *http.Request) resources.RequestContext{
+	return resources.RequestContext{Id : req.Header.Get("request-id")}
+}
+
 func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		defer h.logger.Trace(logs.DEBUG)()
+		request_context := getContextFromRequest(req)
 		
-		h.logger.Info("###what is the context? ", logs.Args{{"request", req}})
-		 
-		h.logger.Info("###header1 ", logs.Args{{"requestid from heder ? ", req.Header.Get("X-Request-ID")}})
-		h.logger.Info("###header2 ", logs.Args{{"requst header type ? ", reflect.TypeOf(req.Header.Get("ubiqContext"))}})
-		h.logger.Info("###what is the context? ", logs.Args{{"all_the_context", req.Context()}})
-		h.logger.Info("###Context values: ", logs.Args{{"context", req.Context().Value("ubiq_context").(resources.RequestContext)}})
-
+		defer h.logger.Trace(logs.DEBUG, logs.Args{{ Name: "context", Value : request_context}})()
+		
 		createVolumeRequest := resources.CreateVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &createVolumeRequest)
 		if err != nil {
 			utils.WriteResponse(w, 409, &resources.GenericResponse{Err: err.Error()})
 			return
 		}
+		createVolumeRequest.Context = request_context
+		
 		if len(createVolumeRequest.Backend) == 0 {
 			createVolumeRequest.Backend = h.config.DefaultBackend
 		}
 		backend, ok := h.backends[createVolumeRequest.Backend]
 		if !ok {
-			h.logger.Error("error-backend-not-found", logs.Args{{"backend", createVolumeRequest.Backend}})
+			h.logger.Error("error-backend-not-found", logs.Args{{"backend", createVolumeRequest.Backend}, { Name: "context", Value : request_context}})
 			utils.WriteResponse(w, http.StatusNotFound, &resources.GenericResponse{Err: "backend-not-found"})
 			return
 		}

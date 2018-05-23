@@ -18,7 +18,6 @@ package utils
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -92,33 +91,27 @@ func HttpExecuteUserAuth(httpClient *http.Client, requestType string, requestURL
 
 }
 
+
 func HttpExecute(httpClient *http.Client, requestType string, requestURL string, rawPayload interface{}, request_context resources.RequestContext) (*http.Response, error) {
 	logger := logs.GetLogger()
 	payload, err := json.MarshalIndent(rawPayload, "", " ")
 
-	message := fmt.Sprintf("#### Got request id %s ", request_context.Id)
-	logger.Info(message)
+	logger.Info("Sending HTTPExecute request", logs.Args{{Name: "context", Value : request_context}})
 
 	if err != nil {
 		err = fmt.Errorf("Internal error marshalling params %#v", err)
-		return nil, logger.ErrorRet(err, "failed")
+		return nil, logger.ErrorRet(err, "failed", logs.Args{{Name: "context", Value : request_context}})
 	}
 
 	request, err := http.NewRequest(requestType, requestURL, bytes.NewBuffer(payload))
-	ctx := context.WithValue(request.Context(), "ubiqContext", request_context)
-	request = request.WithContext(ctx)
+
+	//setting the headers for the request
+	request.Header.Set("request-id", request_context.Id)
 	
-	//json_request, _ := json.MarshalIndent(request_context, "", " ")
-	request.Header.Set("X-Request-ID", request_context.Id)
-	
-	message = fmt.Sprintf("request general context %s ", request.Context())
-	logger.Info(message)
-	message = fmt.Sprintf("request context value %s ", request.Context().Value("ubiqContext"))
-	logger.Info(message)
 
 	if err != nil {
 		err = fmt.Errorf("Error in creating request %#v", err)
-		return nil, logger.ErrorRet(err, "failed")
+		return nil, logger.ErrorRet(err, "failed", logs.Args{{Name: "context", Value : request_context}})
 	}
 
 	return httpClient.Do(request)
