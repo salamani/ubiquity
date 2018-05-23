@@ -23,6 +23,7 @@ import (
      "runtime"
      "bytes"
      "strconv"
+     "sync"
     
 )
 
@@ -79,7 +80,7 @@ func getArgsWithContext(args []Args) []Args{
 	return new_args
 }
 
-func getGID() uint64 {
+func GetGoID() uint64 {
     b := make([]byte, 64)
     b = b[:runtime.Stack(b, false)]
     b = bytes.TrimPrefix(b, []byte("goroutine "))
@@ -88,22 +89,41 @@ func getGID() uint64 {
     return n
 }
 
+var GoIdToRequestIdMap = new(sync.Map)
 
 func (l *goLoggingLogger) Debug(str string, args ...Args) {
 	args = getArgsWithContext(args)
-	new_args := append(args, Args{{Name: "go Id ", Value: getGID()}})
+	go_id :=  GetGoID()
+	request_id, exists := GoIdToRequestIdMap.Load(go_id)
+	if !exists {
+		request_id = "XXXXXXX"
+	}
+	
+	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
     l.logger.Debugf(str + " %v", new_args)
 }
 
 func (l *goLoggingLogger) Info(str string, args ...Args) {
 	args = getArgsWithContext(args)
-	new_args := append(args, Args{{Name: "go-id ", Value: getGID()}})
+	go_id :=  GetGoID()
+	request_id, exists := GoIdToRequestIdMap.Load(go_id)
+	if !exists {
+		request_id = "XXXXXXX"
+	}
+	
+	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
     l.logger.Infof(str + " %v", new_args)
 }
 
 func (l *goLoggingLogger) Error(str string, args ...Args) {
 	args = getArgsWithContext(args)
-	new_args := append(args, Args{{Name: "go-id ", Value: getGID()}})
+	go_id :=  GetGoID()
+	request_id, exists := GoIdToRequestIdMap.Load(go_id)
+	if !exists {
+		request_id = "XXXXXXX"
+	}
+	
+	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
     l.logger.Errorf(str + " %v", new_args)
 }
 
@@ -115,7 +135,13 @@ func (l *goLoggingLogger) ErrorRet(err error, str string, args ...Args) error {
 
 func (l *goLoggingLogger) Trace(level Level, args ...Args) func() {
 	args = getArgsWithContext(args)
-	new_args := append(args, Args{{Name: "go-id ", Value: getGID()}})
+	go_id :=  GetGoID()
+	request_id, exists := GoIdToRequestIdMap.Load(go_id)
+	if !exists {
+		request_id = "XXXXXXX"
+	}
+	
+	new_args := append(args, Args{{Name: "go Id ", Value: GetGoID()}, {Name: "request-id", Value: request_id}})
     switch level {
     case DEBUG:
         l.logger.Debug(traceEnter, new_args)
