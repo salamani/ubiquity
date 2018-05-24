@@ -44,9 +44,9 @@ func getContextFromRequest(req *http.Request) resources.RequestContext{
 func (h *StorageApiHandler) Activate() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		
-//		go_id := logs.GetGoID()
-//		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
-//		defer logs.GoIdToRequestIdMap.Delete(go_id)
+		go_id := logs.GetGoID()
+		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+		defer logs.GoIdToRequestIdMap.Delete(go_id)
 		
 		defer h.logger.Trace(logs.DEBUG)()
 
@@ -95,10 +95,9 @@ func (h *StorageApiHandler) Activate() http.HandlerFunc {
 
 func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-//		request_context := getContextFromRequest(req)
-//		go_id := logs.GetGoID()
-//		logs.GoIdToRequestIdMap.Store(go_id, request_context)
-//		defer logs.GoIdToRequestIdMap.Delete(go_id)
+		go_id := logs.GetGoID()
+		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+		defer logs.GoIdToRequestIdMap.Delete(go_id)
 		
 		defer h.logger.Trace(logs.DEBUG)()
 		
