@@ -93,12 +93,16 @@ func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRe
 }
 
 func (s *remoteClient) RemoveVolume(removeVolumeRequest resources.RemoveVolumeRequest) error {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, removeVolumeRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	removeRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", removeVolumeRequest.Name)
 
 	removeVolumeRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient, "DELETE", removeRemoteURL, removeVolumeRequest, resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient, "DELETE", removeRemoteURL, removeVolumeRequest, removeVolumeRequest.Context)
 	if err != nil {
 		return s.logger.ErrorRet(err, "utils.HttpExecute failed")
 	}
@@ -113,11 +117,15 @@ func (s *remoteClient) RemoveVolume(removeVolumeRequest resources.RemoveVolumeRe
 }
 
 func (s *remoteClient) GetVolume(getVolumeRequest resources.GetVolumeRequest) (resources.Volume, error) {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, getVolumeRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	getRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", getVolumeRequest.Name)
 	getVolumeRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient, "GET", getRemoteURL, getVolumeRequest,resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient, "GET", getRemoteURL, getVolumeRequest, getVolumeRequest.Context)
 	if err != nil {
 		return resources.Volume{}, s.logger.ErrorRet(err, "failed")
 	}
@@ -167,11 +175,14 @@ func (s *remoteClient) GetVolumeConfig(getVolumeConfigRequest resources.GetVolum
 }
 
 func (s *remoteClient) Attach(attachRequest resources.AttachRequest) (string, error) {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, attachRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	attachRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", attachRequest.Name, "attach")
 	attachRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient, "PUT", attachRemoteURL, attachRequest, resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient, "PUT", attachRemoteURL, attachRequest, attachRequest.Context)
 	if err != nil {
 		return "", s.logger.ErrorRet(err, "utils.HttpExecute failed")
 	}

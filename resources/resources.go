@@ -177,6 +177,7 @@ type CreateVolumeRequest struct {
 type RemoveVolumeRequest struct {
 	CredentialInfo CredentialInfo
 	Name           string
+	Context 	   RequestContext
 }
 
 type ListVolumesRequest struct {
@@ -204,6 +205,7 @@ type GetVolumeRequest struct {
 type GetVolumeConfigRequest struct {
 	CredentialInfo CredentialInfo
 	Name           string
+	Context 		RequestContext
 }
 type ActivateResponse struct {
 	Implements []string

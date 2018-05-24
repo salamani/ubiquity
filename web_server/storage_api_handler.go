@@ -140,6 +140,10 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 
 func (h *StorageApiHandler) RemoveVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		go_id := logs.GetGoID()
+		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+		defer logs.GoIdToRequestIdMap.Delete(go_id)
+		
 		defer h.logger.Trace(logs.DEBUG)()
 		removeVolumeRequest := resources.RemoveVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &removeVolumeRequest)
@@ -168,6 +172,9 @@ func (h *StorageApiHandler) RemoveVolume() http.HandlerFunc {
 
 func (h *StorageApiHandler) AttachVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		go_id := logs.GetGoID()
+		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+		defer logs.GoIdToRequestIdMap.Delete(go_id)
 		defer h.logger.Trace(logs.DEBUG)()
 		attachRequest := resources.AttachRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &attachRequest)
@@ -229,7 +236,6 @@ func (h *StorageApiHandler) GetVolumeConfig() http.HandlerFunc {
 		go_id := logs.GetGoID()
 		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
 		defer logs.GoIdToRequestIdMap.Delete(go_id)
-		
 		defer h.logger.Trace(logs.DEBUG)()
 		
 		getVolumeConfigRequest := resources.GetVolumeConfigRequest{}
@@ -263,7 +269,11 @@ func (h *StorageApiHandler) GetVolumeConfig() http.HandlerFunc {
 
 func (h *StorageApiHandler) GetVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-
+		go_id := logs.GetGoID()
+		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+		defer logs.GoIdToRequestIdMap.Delete(go_id)
+		defer h.logger.Trace(logs.DEBUG)()
+		
 		getVolumeRequest := resources.GetVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &getVolumeRequest)
 		if err != nil {
