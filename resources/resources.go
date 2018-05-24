@@ -190,6 +190,7 @@ type AttachRequest struct {
 	CredentialInfo CredentialInfo
 	Name           string
 	Host           string
+	Context		   RequestContext
 }
 
 type DetachRequest struct {
