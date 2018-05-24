@@ -206,7 +206,7 @@ func (s *scbeLocalClient) Activate(activateRequest resources.ActivateRequest) er
 
 // CreateVolume parse and validate the given options and trigger the volume creation
 func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) (err error) {
-	defer s.logger.Trace(logs.DEBUG, logs.Args{{Name: "context", Value :createVolumeRequest.Context}})()
+	defer s.logger.Trace(logs.DEBUG)()
 
 	// authenticate
 	scbeRestClient, err := s.getAuthenticatedScbeRestClient(createVolumeRequest.CredentialInfo)
@@ -216,8 +216,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 
 	// verify volume does not exist
 	if _, err = s.dataModel.GetVolume(createVolumeRequest.Name, false); err != nil {
-		return s.logger.ErrorRet(err, "dataModel.GetVolume failed", logs.Args{{"name", createVolumeRequest.Name}, 
-				{Name: "context", Value :createVolumeRequest.Context}})
+		return s.logger.ErrorRet(err, "dataModel.GetVolume failed", logs.Args{{"name", createVolumeRequest.Name}})
 	}
 
 	// validate size option given
@@ -225,7 +224,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	if !ok {
 		sizeStr = s.config.DefaultVolumeSize
 		s.logger.Debug("No size given to create volume, so using the default_size",
-			logs.Args{{"volume", createVolumeRequest.Name}, {"default_size", sizeStr}, {Name: "context", Value :createVolumeRequest.Context}})
+			logs.Args{{"volume", createVolumeRequest.Name}, {"default_size", sizeStr}})
 	}
 
 	// validate size is a number
@@ -240,7 +239,7 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	if !ok {
 		fstype = s.config.DefaultFilesystemType
 		s.logger.Debug("No default file system type given to create a volume, so using the default_fstype",
-			logs.Args{{"volume", createVolumeRequest.Name}, {"default_fstype", fstype}, {Name: "context", Value :createVolumeRequest.Context}})
+			logs.Args{{"volume", createVolumeRequest.Name}, {"default_fstype", fstype}})
 	} else {
 		fstype = fstypeInt.(string)
 	}
@@ -270,15 +269,15 @@ func (s *scbeLocalClient) CreateVolume(createVolumeRequest resources.CreateVolum
 	volInfo := ScbeVolumeInfo{}
 	volInfo, err = scbeRestClient.CreateVolume(volNameToCreate, profile, size)
 	if err != nil {
-		return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed", logs.Args{{Name: "context", Value :createVolumeRequest.Context}})
+		return s.logger.ErrorRet(err, "scbeRestClient.CreateVolume failed")
 	}
 
 	err = s.dataModel.InsertVolume(createVolumeRequest.Name, volInfo.Wwn, fstype)
 	if err != nil {
-		return s.logger.ErrorRet(err, "dataModel.InsertVolume failed", logs.Args{{Name: "context", Value :createVolumeRequest.Context}})
+		return s.logger.ErrorRet(err, "dataModel.InsertVolume failed")
 	}
 
-	s.logger.Info("succeeded", logs.Args{{"volume", createVolumeRequest.Name}, {"profile", profile}, {Name: "context", Value :createVolumeRequest.Context}})
+	s.logger.Info("succeeded", logs.Args{{"volume", createVolumeRequest.Name}, {"profile", profile}})
 	return nil
 }
 

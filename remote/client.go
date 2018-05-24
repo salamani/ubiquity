@@ -37,6 +37,10 @@ type remoteClient struct {
 }
 
 func (s *remoteClient) Activate(activateRequest resources.ActivateRequest) error {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, activateRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	if s.isActivated {
@@ -46,7 +50,7 @@ func (s *remoteClient) Activate(activateRequest resources.ActivateRequest) error
 	// call remote activate
 	activateURL := utils.FormatURL(s.storageApiURL, "activate")
 	activateRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient,"POST", activateURL, activateRequest, resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient,"POST", activateURL, activateRequest, activateRequest.Context)
 	if err != nil {
 		return s.logger.ErrorRet(err, "utils.HttpExecute failed")
 	}
@@ -61,7 +65,11 @@ func (s *remoteClient) Activate(activateRequest resources.ActivateRequest) error
 }
 
 func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) error {
-	defer s.logger.Trace(logs.DEBUG, logs.Args{{Name: "context", Value: createVolumeRequest.Context}})()
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, createVolumeRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	
+	defer s.logger.Trace(logs.DEBUG)()
 
 	createRemoteURL := utils.FormatURL(s.storageApiURL, "volumes")
 
@@ -72,13 +80,13 @@ func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRe
 	createVolumeRequest.CredentialInfo = s.config.CredentialInfo
 	response, err := utils.HttpExecute(s.httpClient, "POST", createRemoteURL, createVolumeRequest, createVolumeRequest.Context)
 	if err != nil {
-		return s.logger.ErrorRet(err, "utils.HttpExecute failed", logs.Args{{Name: "context", Value: createVolumeRequest.Context}})
+		return s.logger.ErrorRet(err, "utils.HttpExecute failed")
 	}
 
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return s.logger.ErrorRet(utils.ExtractErrorResponse(response), "failed", logs.Args{{"response", response}, {Name: "context", Value: createVolumeRequest.Context}})
+		return s.logger.ErrorRet(utils.ExtractErrorResponse(response), "failed", logs.Args{{"response", response}})
 	}
 
 	return nil

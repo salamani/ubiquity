@@ -96,11 +96,11 @@ func HttpExecute(httpClient *http.Client, requestType string, requestURL string,
 	logger := logs.GetLogger()
 	payload, err := json.MarshalIndent(rawPayload, "", " ")
 
-	logger.Info("Sending HTTPExecute request", logs.Args{{Name: "context", Value : request_context}})
+	logger.Info("Sending HTTPExecute request")
 
 	if err != nil {
 		err = fmt.Errorf("Internal error marshalling params %#v", err)
-		return nil, logger.ErrorRet(err, "failed", logs.Args{{Name: "context", Value : request_context}})
+		return nil, logger.ErrorRet(err, "failed")
 	}
 
 	request, err := http.NewRequest(requestType, requestURL, bytes.NewBuffer(payload))
@@ -111,7 +111,7 @@ func HttpExecute(httpClient *http.Client, requestType string, requestURL string,
 
 	if err != nil {
 		err = fmt.Errorf("Error in creating request %#v", err)
-		return nil, logger.ErrorRet(err, "failed", logs.Args{{Name: "context", Value : request_context}})
+		return nil, logger.ErrorRet(err, "failed")
 	}
 
 	return httpClient.Do(request)

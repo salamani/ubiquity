@@ -163,6 +163,7 @@ type ActivateRequest struct {
 	CredentialInfo CredentialInfo
 	Backends       []string
 	Opts           map[string]string
+	Context 	   RequestContext
 }
 
 type CreateVolumeRequest struct {
@@ -170,7 +171,7 @@ type CreateVolumeRequest struct {
 	Name           string
 	Backend        string
 	Opts           map[string]interface{}
-	Context        RequestContext
+	Context 	   RequestContext
 }
 
 type RemoveVolumeRequest struct {

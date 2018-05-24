@@ -37,16 +37,19 @@ func NewStorageApiHandler(backends map[string]resources.StorageClient, config re
 	return &StorageApiHandler{logger: logs.GetLogger(), backends: backends, config: config, locker: utils.NewLocker()}
 }
 
+func getContextFromRequest(req *http.Request) resources.RequestContext{
+	return resources.RequestContext{Id : req.Header.Get("request-id")}
+}
+
 func (h *StorageApiHandler) Activate() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		
+//		go_id := logs.GetGoID()
+//		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+//		defer logs.GoIdToRequestIdMap.Delete(go_id)
+		
 		defer h.logger.Trace(logs.DEBUG)()
-		h.logger.Info("###what is the general context? ", logs.Args{{"general context", req.Context()}})
-		ctx_value := req.Context().Value("ubiq_context")
-		if ctx_value != nil{
-			ctx_value = ctx_value.(resources.RequestContext)
-		}
-		h.logger.Info("###what is the context? ", logs.Args{{"context", ctx_value}})
+
 		activateRequest := resources.ActivateRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &activateRequest)
 		if err != nil {
@@ -90,18 +93,14 @@ func (h *StorageApiHandler) Activate() http.HandlerFunc {
 	}
 }
 
-func getContextFromRequest(req *http.Request) resources.RequestContext{
-	return resources.RequestContext{Id : req.Header.Get("request-id")}
-}
-
 func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		request_context := getContextFromRequest(req)
-		go_id := logs.GetGoID()
-		logs.GoIdToRequestIdMap.Store(go_id, request_context)
-		defer logs.GoIdToRequestIdMap.Delete(go_id)
+//		request_context := getContextFromRequest(req)
+//		go_id := logs.GetGoID()
+//		logs.GoIdToRequestIdMap.Store(go_id, request_context)
+//		defer logs.GoIdToRequestIdMap.Delete(go_id)
 		
-		defer h.logger.Trace(logs.DEBUG, logs.Args{{ Name: "context", Value : request_context}})()
+		defer h.logger.Trace(logs.DEBUG)()
 		
 		createVolumeRequest := resources.CreateVolumeRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &createVolumeRequest)
@@ -109,14 +108,14 @@ func (h *StorageApiHandler) CreateVolume() http.HandlerFunc {
 			utils.WriteResponse(w, 409, &resources.GenericResponse{Err: err.Error()})
 			return
 		}
-		createVolumeRequest.Context = request_context
+
 		
 		if len(createVolumeRequest.Backend) == 0 {
 			createVolumeRequest.Backend = h.config.DefaultBackend
 		}
 		backend, ok := h.backends[createVolumeRequest.Backend]
 		if !ok {
-			h.logger.Error("error-backend-not-found", logs.Args{{"backend", createVolumeRequest.Backend}, { Name: "context", Value : request_context}})
+			h.logger.Error("error-backend-not-found", logs.Args{{"backend", createVolumeRequest.Backend}})
 			utils.WriteResponse(w, http.StatusNotFound, &resources.GenericResponse{Err: "backend-not-found"})
 			return
 		}
