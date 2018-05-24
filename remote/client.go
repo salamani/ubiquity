@@ -138,11 +138,15 @@ func (s *remoteClient) GetVolume(getVolumeRequest resources.GetVolumeRequest) (r
 }
 
 func (s *remoteClient) GetVolumeConfig(getVolumeConfigRequest resources.GetVolumeConfigRequest) (map[string]interface{}, error) {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, getVolumeConfigRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
+	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	getRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", getVolumeConfigRequest.Name, "config")
 	getVolumeConfigRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient, "GET", getRemoteURL, getVolumeConfigRequest, resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient, "GET", getRemoteURL, getVolumeConfigRequest, getVolumeConfigRequest.Context)
 	if err != nil {
 		return nil, s.logger.ErrorRet(err, "failed")
 	}

@@ -199,6 +199,7 @@ type DetachRequest struct {
 type GetVolumeRequest struct {
 	CredentialInfo CredentialInfo
 	Name           string
+	Context 		RequestContext
 }
 type GetVolumeConfigRequest struct {
 	CredentialInfo CredentialInfo

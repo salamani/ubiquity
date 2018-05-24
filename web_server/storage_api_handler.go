@@ -226,6 +226,12 @@ func (h *StorageApiHandler) DetachVolume() http.HandlerFunc {
 
 func (h *StorageApiHandler) GetVolumeConfig() http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
+		go_id := logs.GetGoID()
+		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
+		defer logs.GoIdToRequestIdMap.Delete(go_id)
+		
+		defer h.logger.Trace(logs.DEBUG)()
+		
 		getVolumeConfigRequest := resources.GetVolumeConfigRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &getVolumeConfigRequest)
 		if err != nil {
