@@ -175,7 +175,8 @@ func (h *StorageApiHandler) AttachVolume() http.HandlerFunc {
 		go_id := logs.GetGoID()
 		logs.GoIdToRequestIdMap.Store(go_id, getContextFromRequest(req))
 		defer logs.GoIdToRequestIdMap.Delete(go_id)
-		defer h.logger.Trace(logs.DEBUG)()
+		
+		defer h.logger.Trace(   logs.DEBUG)()
 		attachRequest := resources.AttachRequest{}
 		err := utils.UnmarshalDataFromRequest(req, &attachRequest)
 		if err != nil {
