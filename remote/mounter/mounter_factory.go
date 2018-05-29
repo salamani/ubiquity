@@ -8,7 +8,7 @@ import (
 
 //go:generate counterfeiter -o ../fakes/fake_mounter_factory.go . MounterFactory
 type MounterFactory interface {
-	GetMounterPerBackend(backend string, legacyLogger *log.Logger, pluginConfig resources.UbiquityPluginConfig) (resources.Mounter, error)
+	GetMounterPerBackend(backend string, legacyLogger *log.Logger, pluginConfig resources.UbiquityPluginConfig, requestContext resources.RequestContext) (resources.Mounter, error)
 }
 
 
@@ -22,8 +22,11 @@ func NewMounterFactory() (MounterFactory){
 	}
 }
 
-func (m *mounterFactory) GetMounterPerBackend(backend string, legacyLogger *log.Logger, pluginConfig resources.UbiquityPluginConfig) (resources.Mounter, error){
+func (m *mounterFactory) GetMounterPerBackend(backend string, legacyLogger *log.Logger, pluginConfig resources.UbiquityPluginConfig, requestContext resources.RequestContext) (resources.Mounter, error){
 	m.logger = logs.GetLogger()
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, requestContext)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer m.logger.Trace(logs.DEBUG)()
 
 	if backend == resources.SpectrumScale {
