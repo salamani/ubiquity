@@ -197,11 +197,14 @@ func (s *remoteClient) Attach(attachRequest resources.AttachRequest) (string, er
 }
 
 func (s *remoteClient) Detach(detachRequest resources.DetachRequest) error {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, detachRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	detachRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", detachRequest.Name, "detach")
 	detachRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient, "PUT", detachRemoteURL, detachRequest, resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient, "PUT", detachRemoteURL, detachRequest, detachRequest.Context)
 	if err != nil {
 		return s.logger.ErrorRet(err, "utils.HttpExecute failed")
 	}
@@ -216,11 +219,14 @@ func (s *remoteClient) Detach(detachRequest resources.DetachRequest) error {
 }
 
 func (s *remoteClient) ListVolumes(listVolumesRequest resources.ListVolumesRequest) ([]resources.Volume, error) {
+	go_id := logs.GetGoID()
+	logs.GoIdToRequestIdMap.Store(go_id, listVolumesRequest.Context)
+	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	listRemoteURL := utils.FormatURL(s.storageApiURL, "volumes")
 	listVolumesRequest.CredentialInfo = s.config.CredentialInfo
-	response, err := utils.HttpExecute(s.httpClient, "GET", listRemoteURL, listVolumesRequest, resources.RequestContext{})
+	response, err := utils.HttpExecute(s.httpClient, "GET", listRemoteURL, listVolumesRequest, listVolumesRequest.Context)
 	if err != nil {
 		return nil, s.logger.ErrorRet(err, "failed")
 	}
