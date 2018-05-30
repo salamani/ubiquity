@@ -126,18 +126,18 @@ func (l *goLoggingLogger) ErrorRet(err error, str string, args ...Args) error {
 }
 
 func (l *goLoggingLogger) Trace(level Level, args ...Args) func() {
-	//goid_context_string = getGoIdAndContextString()
+	goid_context_string := getGoIdAndContextString()
 	//l.logger.Errorf(fmt.Sprintf("[%s] %s %v", goid_context_string, str, append(args, Args{{"error", err}}))
     switch level {
     case DEBUG:
-        l.Debug(traceEnter, args...)
-        return func() { l.Debug(traceExit, args...) }
+        l.logger.Debug(fmt.Sprintf("[%s] %s",goid_context_string, traceEnter), args)
+        return func() { l.logger.Debug(fmt.Sprintf("[%s] %s",goid_context_string, traceExit), args) }
     case INFO:
-        l.Info(traceEnter, args...)
-        return func() { l.Info(traceExit, args...) }
+		l.logger.Info(fmt.Sprintf("[%s] %s",goid_context_string, traceEnter), args)
+        return func() { l.logger.Info(fmt.Sprintf("[%s] %s",goid_context_string, traceExit), args) }
     case ERROR:
-        l.Error(traceEnter, args...)
-        return func() { l.Error(traceExit, args...) }
+        l.logger.Error(fmt.Sprintf("[%s] %s",goid_context_string, traceEnter), args)
+        return func() { l.logger.Error(fmt.Sprintf("[%s] %s",goid_context_string, traceExit), args) }
     default:
         panic("unknown level")
     }
