@@ -114,6 +114,10 @@ func (l *goLoggingLogger) getGoIdAndContextString() string{
 
 }
 
+func GetDeleteFromMapFunc(key interface{}) func(){
+	return func() { GoIdToRequestIdMap.Delete(key)}
+}
+
 func (l *goLoggingLogger) Debug(str string, args ...Args) {
 	goid_context_string := l.getGoIdAndContextString()
     l.logger.Debugf(fmt.Sprintf("[%s] %s %v", goid_context_string, str, args))

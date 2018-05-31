@@ -42,9 +42,9 @@ func NewScbeMounter(scbeRemoteConfig resources.ScbeRemoteConfig) resources.Mount
 }
 
 func (s *scbeMounter) Mount(mountRequest resources.MountRequest) (string, error) {
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, mountRequest.Context)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 	volumeWWN := mountRequest.VolumeConfig["Wwn"].(string)
 
@@ -85,9 +85,9 @@ func (s *scbeMounter) Mount(mountRequest resources.MountRequest) (string, error)
 }
 
 func (s *scbeMounter) Unmount(unmountRequest resources.UnmountRequest) error {
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, unmountRequest.Context)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	volumeWWN := unmountRequest.VolumeConfig["Wwn"].(string)
@@ -115,9 +115,9 @@ func (s *scbeMounter) Unmount(unmountRequest resources.UnmountRequest) error {
 }
 
 func (s *scbeMounter) ActionAfterDetach(request resources.AfterDetachRequest) error {
-	go_id := logs.GetGoID()
-	logs.GoIdToRequestIdMap.Store(go_id, request.Context)
-	defer logs.GoIdToRequestIdMap.Delete(go_id)
+//	go_id := logs.GetGoID()
+//	logs.GoIdToRequestIdMap.Store(go_id, request.Context)
+//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 	volumeWWN := request.VolumeConfig["Wwn"].(string)
 
