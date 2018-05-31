@@ -90,9 +90,15 @@ func GetGoID() uint64 {
     return n
 }
 
+func (l *goLoggingLogger) PrintElement(key interface{},  val interface{}) bool{
+	l.logger.Debugf(fmt.Sprintf("key : %s val : %s ", key, val))
+	return true
+}
+
+
 var GoIdToRequestIdMap = new(sync.Map)
 
-func getGoIdAndContextString() string{
+func (l *goLoggingLogger) getGoIdAndContextString() string{
 	go_id :=  GetGoID()
 	context, exists := GoIdToRequestIdMap.Load(go_id)
 	if !exists {
@@ -100,33 +106,37 @@ func getGoIdAndContextString() string{
 	} else {
 		context = context.(resources.RequestContext)
 	}
+	
+	l.logger.Debugf("############# - START")
+	GoIdToRequestIdMap.Range(l.PrintElement)
+	l.logger.Debugf("############# - END")
 	return fmt.Sprintf("%d:%s", go_id, context.(resources.RequestContext).Id)
 
 }
 
 func (l *goLoggingLogger) Debug(str string, args ...Args) {
-	goid_context_string := getGoIdAndContextString()
+	goid_context_string := l.getGoIdAndContextString()
     l.logger.Debugf(fmt.Sprintf("[%s] %s %v", goid_context_string, str, args))
 }
 
 func (l *goLoggingLogger) Info(str string, args ...Args) {
-	goid_context_string := getGoIdAndContextString()
+	goid_context_string := l.getGoIdAndContextString()
 	l.logger.Infof(fmt.Sprintf("[%s] %s %v", goid_context_string, str, args))
 }
 
 func (l *goLoggingLogger) Error(str string, args ...Args) {
-	goid_context_string := getGoIdAndContextString()
+	goid_context_string := l.getGoIdAndContextString()
 	l.logger.Errorf(fmt.Sprintf("[%s] %s %v", goid_context_string, str, args))
 }
 
 func (l *goLoggingLogger) ErrorRet(err error, str string, args ...Args) error {
-	goid_context_string := getGoIdAndContextString()
+	goid_context_string := l.getGoIdAndContextString()
 	l.logger.Errorf(fmt.Sprintf("[%s] %s %v", goid_context_string, str, append(args, Args{{"error", err}})))
     return err
 }
 
 func (l *goLoggingLogger) Trace(level Level, args ...Args) func() {
-	goid_context_string := getGoIdAndContextString()
+	goid_context_string := l.getGoIdAndContextString()
 	//l.logger.Errorf(fmt.Sprintf("[%s] %s %v", goid_context_string, str, append(args, Args{{"error", err}}))
     switch level {
     case DEBUG:
