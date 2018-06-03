@@ -37,10 +37,6 @@ type remoteClient struct {
 }
 
 func (s *remoteClient) Activate(activateRequest resources.ActivateRequest) error {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, activateRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
-	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	if s.isActivated {
@@ -65,10 +61,6 @@ func (s *remoteClient) Activate(activateRequest resources.ActivateRequest) error
 }
 
 func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRequest) error {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, createVolumeRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
-	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	createRemoteURL := utils.FormatURL(s.storageApiURL, "volumes")
@@ -93,10 +85,6 @@ func (s *remoteClient) CreateVolume(createVolumeRequest resources.CreateVolumeRe
 }
 
 func (s *remoteClient) RemoveVolume(removeVolumeRequest resources.RemoveVolumeRequest) error {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, removeVolumeRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
-	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	removeRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", removeVolumeRequest.Name)
@@ -117,10 +105,6 @@ func (s *remoteClient) RemoveVolume(removeVolumeRequest resources.RemoveVolumeRe
 }
 
 func (s *remoteClient) GetVolume(getVolumeRequest resources.GetVolumeRequest) (resources.Volume, error) {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, getVolumeRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
-	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	getRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", getVolumeRequest.Name)
@@ -146,10 +130,6 @@ func (s *remoteClient) GetVolume(getVolumeRequest resources.GetVolumeRequest) (r
 }
 
 func (s *remoteClient) GetVolumeConfig(getVolumeConfigRequest resources.GetVolumeConfigRequest) (map[string]interface{}, error) {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, getVolumeConfigRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
-	
 	defer s.logger.Trace(logs.DEBUG)()
 
 	getRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", getVolumeConfigRequest.Name, "config")
@@ -175,9 +155,6 @@ func (s *remoteClient) GetVolumeConfig(getVolumeConfigRequest resources.GetVolum
 }
 
 func (s *remoteClient) Attach(attachRequest resources.AttachRequest) (string, error) {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, attachRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	attachRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", attachRequest.Name, "attach")
@@ -197,9 +174,6 @@ func (s *remoteClient) Attach(attachRequest resources.AttachRequest) (string, er
 }
 
 func (s *remoteClient) Detach(detachRequest resources.DetachRequest) error {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, detachRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	detachRemoteURL := utils.FormatURL(s.storageApiURL, "volumes", detachRequest.Name, "detach")
@@ -219,9 +193,6 @@ func (s *remoteClient) Detach(detachRequest resources.DetachRequest) error {
 }
 
 func (s *remoteClient) ListVolumes(listVolumesRequest resources.ListVolumesRequest) ([]resources.Volume, error) {
-//	go_id := logs.GetGoID()
-//	logs.GoIdToRequestIdMap.Store(go_id, listVolumesRequest.Context)
-//	defer logs.GoIdToRequestIdMap.Delete(go_id)
 	defer s.logger.Trace(logs.DEBUG)()
 
 	listRemoteURL := utils.FormatURL(s.storageApiURL, "volumes")
