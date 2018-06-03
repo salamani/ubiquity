@@ -106,10 +106,6 @@ func (l *goLoggingLogger) getGoIdAndContextString() string{
 	} else {
 		context = context.(resources.RequestContext)
 	}
-	
-	l.logger.Debugf("############# - START")
-	GoIdToRequestIdMap.Range(l.PrintElement)
-	l.logger.Debugf("############# - END")
 	return fmt.Sprintf("%d:%s", go_id, context.(resources.RequestContext).Id)
 
 }
