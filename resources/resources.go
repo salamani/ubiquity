@@ -44,7 +44,6 @@ type UbiquityServerConfig struct {
 type SpectrumScaleConfig struct {
 	DefaultFilesystemName string
 	NfsServerAddr         string
-	SshConfig             SshConfig
 	RestConfig            RestConfig
 	ForceDelete           bool
 }
@@ -85,12 +84,6 @@ const KeyScbeSslMode = "SCBE_SSL_MODE"
 const DefaultDbSslMode = SslModeVerifyFull
 const DefaultScbeSslMode = SslModeVerifyFull
 const DefaultPluginsSslMode = SslModeVerifyFull
-
-type SshConfig struct {
-	User string
-	Host string
-	Port string
-}
 
 type RestConfig struct {
 	Endpoint string
